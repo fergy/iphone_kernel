@@ -112,6 +112,20 @@ so much easier [Ed]
 Maintainers List (try to look for most precise areas first)
 
 		-----------------------------------
+APPLE iPhone-iDroidproject
+M:	Ramon Rebersak <ramon.rebersak@gmail.com>
+L:	fergy@idroidproject.org
+S:	Maintained
+F:	arch/arm/*
+F:	drivers/block
+F:	drivers/gpu/pvr/*
+F:	drivers/input/touchscreen/zephyr2.c
+F:	drivers/mmc/host/iphone-sdio.c
+F:	drivers/power/ltc4088-charger.c
+F:	drivers/serial/iphone-uart.c
+F:	drivers/video/backlight/iphone_bl.c
+F:	drivers/video/iphone-fb.c
+F:	sound/soc/iphone/*
 
 3C505 NETWORK DRIVER
 M:	Philip Blundell <philb@gnu.org>

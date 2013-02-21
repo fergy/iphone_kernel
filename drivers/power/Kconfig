@@ -117,6 +117,10 @@ config BATTERY_PMU
 	  Say Y here to expose battery information on Apple machines
 	  through the generic battery class.
 
+config BATTERY_IPHONE
+	tristate "Apple iPhone Battery"
+	default y
+
 config BATTERY_OLPC
 	tristate "One Laptop Per Child battery"
 	depends on X86_32 && OLPC
@@ -345,6 +349,13 @@ config AB8500_BM
 	depends on AB8500_CORE && AB8500_GPADC
 	help
 	  Say Y to include support for AB8500 battery management.
+
+config LTC4088_CHARGER
+	tristate "LTC4088 Charger driver"
+	depends on GPIOLIB
+	help
+	  Say Y here to enable support for ltc4088 chip charger. It controls the
+	  operations through GPIO pins.
 
 source "drivers/power/reset/Kconfig"
 

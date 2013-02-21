@@ -1,5 +1,13 @@
 This Kernel include propriatery binary files from Apple and Marvell.
 
+Changelog> 02182013
+- add HOW TO in /README
+- tested devices is only 3G/3GS
+- added Marvell and APPLE bin's inside /firmware
+- added licenses 'quotes' from Marvel and APPLE regarding firmware binary files
+- patched idroid_original 3.0 Kernel to 3.8.6
+- changed /Makefile fith proper compiler (Please get it from git server if You use x86 Linux machine)
+
 From APPLE INC. iPhone software license agreement:
 
 2.(c) You may not and you agree not to, or to enable others to, copy (except as expressly permitted by this License), decompile, reverse engineer, disassemble, attempt to derive the source code
@@ -16,4 +24,14 @@ Licensee accepts and agrees to all the terms and conditions of this Agreement ("
 From iDroidproject:
 
 WATCH WHAT YOU'R DOIN'!!!
+
+HOW TO:
+
+#1 to compile Kernel, use one of xxx_defconfig by following way:
+- $ cp arch/arm/configs/xxxx_defconfig .config
+- $ make silentoldconfig
+- $ make
+#2 cd arch/arm/boot
+#3 use iExplore or whatever (ssh) to connect to Your iDevice and copy zImage to /private/var/idroid
+#4 restart Your iDevice and enjoy
 

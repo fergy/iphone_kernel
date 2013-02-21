@@ -1,0 +1,18 @@
+config RADIO_CTRL_CLASS
+	bool "Radio Modem Controller Class"
+	depends on IPHONE4S
+	default y if IPHONE4S
+
+config MDM6610_CTRL
+	bool "iPhone 4S MDM6610 Modem Controller"
+	depends on RADIO_CTRL_CLASS && IPHONE_4S
+	default n
+	select RADIO_CTRL_CLASS
+	---help---
+	  Enables the device driver to control and interface with
+	  the modem co-processor.  This module is needed to monitor
+	  modem panics, interact with the modem during factory resets,
+	  and allow modem power up/down support.
+
+	  If unsure, say N.
+

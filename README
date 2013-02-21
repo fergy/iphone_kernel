@@ -35,3 +35,6 @@ HOW TO:
 #3 use iExplore or whatever (ssh) to connect to Your iDevice and copy zImage to /private/var/idroid
 #4 restart Your iDevice and enjoy
 
+Compiler:
+to compile this Kernel with right compiler on X86 machine, please be free to use this one:
+git clone git://github.com/fergy/compiler.git

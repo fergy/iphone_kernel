@@ -26,14 +26,18 @@ From iDroidproject:
 WATCH WHAT YOU'R DOIN'!!!
 
 HOW TO:
+#1 replace compiler path inside 'iphone_kernel/Makefile' with Your compiler path (look at Makefile line 196):
+[code]#PLEASE REPLACE ~/USER/ with You real path:
+#e.g. /home/MYNAMEACCOUNT/PATH_WHERE_IS_TOOLCHAIN/bin/arm-eabi-
+CROSS_COMPILE	?= ~/USER/android-toolchain-eabi/bin/arm-eabi-[/code]
 
-#1 to compile Kernel, use one of xxx_defconfig by following way:
+#2 to compile Kernel, use one of xxx_defconfig by following way:
 - $ cp arch/arm/configs/xxxx_defconfig .config
 - $ make silentoldconfig
 - $ make
-#2 cd arch/arm/boot
-#3 use iExplore or whatever (ssh) to connect to Your iDevice and copy zImage to /private/var/idroid
-#4 restart Your iDevice and enjoy
+#3 cd arch/arm/boot
+#4 use iExplore or whatever (ssh) to connect to Your iDevice and copy zImage to /private/var/idroid
+#5 restart Your iDevice and enjoy
 
 Compiler:
 to compile this Kernel with right compiler on X86 machine, please be free to use this one:

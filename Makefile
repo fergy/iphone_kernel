@@ -193,9 +193,7 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 export KBUILD_BUILDHOST := $(SUBARCH)
 ARCH		?= arm
-#PLEASE REPLACE ~/USER/ with You real path:
-#e.g. /home/MYNAMEACCOUNT/PATH_WHERE_IS_TOOLCHAIN/bin/arm-eabi-
-CROSS_COMPILE	?= ~/USER/android-toolchain-eabi/bin/arm-eabi-
+CROSS_COMPILE	?= /home/Development/android-toolchain-eabi/bin/arm-eabi-
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)

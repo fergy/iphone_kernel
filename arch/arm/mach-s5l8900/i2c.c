@@ -14,7 +14,6 @@
 #include <linux/init.h>
 #include <linux/platform_device.h>
 #include <linux/ioport.h>
-#include <linux/sysdev.h>
 #include <linux/io.h>
 
 static const I2CInfo I2CInit[] = {

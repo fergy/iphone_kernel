@@ -7,9 +7,9 @@
 #include <linux/io.h>
 #include <linux/clk.h>
 #include <linux/clockchips.h>
+#include <linux/clocksource.h>
 
 #include <asm/system.h>
-#include <asm/leds.h>
 #include <asm/mach-types.h>
 
 #include <asm/irq.h>

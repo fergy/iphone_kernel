@@ -1,13 +1,14 @@
 #include <mach/hardware.h>
-#include <ftl/nand.h>
 #include <mach/iphone-dma.h>
 #include <mach/iphone-clock.h>
+#include <linux/module.h>
 #include <linux/dma-mapping.h>
 #include <linux/sched.h>
 #include <linux/delay.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <ftl/ftl.h>
+#include <ftl/nand.h>
 
 #define LOG printk
 #define LOGDBG(format, ...)
@@ -1089,13 +1090,13 @@ int nand_setup(void)
 	return 0;
 }
 
-static int __devinit iphone_nand_probe(struct platform_device *pdev)
+static int __init iphone_nand_probe(struct platform_device *pdev)
 {
 	nand_dev = &pdev->dev;
 	return 0;
 }
 
-static int __devexit iphone_nand_remove(struct platform_device *pdev)
+static int __exit iphone_nand_remove(struct platform_device *pdev)
 {
 	kfree(aTemporarySBuf);
 	kfree(aTemporaryReadEccBuf);
@@ -1133,7 +1134,7 @@ static struct platform_driver iphone_nand_driver = {
 		.owner  = THIS_MODULE,
 	},
 	.probe          = iphone_nand_probe,
-	.remove         = __devexit_p(iphone_nand_remove),
+	.remove         = __exit_p(iphone_nand_remove),
 	.suspend        = NULL,
 	.resume         = NULL,
 };

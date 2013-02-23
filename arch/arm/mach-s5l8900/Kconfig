@@ -5,7 +5,8 @@
 
 config CPU_S5L8900
 	bool
-	select PLAT_S5L
+#	select PLAT_S5L
+#	select PLAT_SAMSUNG
 	select CPU_V6
 	select S5P_EXT_INT
 	select S3C_PL330_DMA

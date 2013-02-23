@@ -4,7 +4,6 @@
 #include <linux/mm.h>
 #include <linux/interrupt.h>
 #include <linux/device.h>
-#include <linux/sysdev.h>
 #include <linux/dma-mapping.h>
 #include <linux/io.h>
 #include <linux/platform_device.h>
@@ -506,13 +505,13 @@ static void dispatchRequest(volatile DMARequest *request) {
 
 static u64 iphone_dma_dmamask = DMA_BIT_MASK(32);
 
-static int __devinit iphone_dma_probe(struct platform_device *pdev)
+static int __init iphone_dma_probe(struct platform_device *pdev)
 {
 	dma_dev = &pdev->dev;
 	return 0;
 }
 
-static int __devexit iphone_dma_remove(struct platform_device *pdev)
+static int __exit iphone_dma_remove(struct platform_device *pdev)
 {
 	return 0;
 }
@@ -552,7 +551,7 @@ static struct platform_driver iphone_dma_driver = {
 		.owner  = THIS_MODULE,
 	},
 	.probe          = iphone_dma_probe,
-	.remove         = __devexit_p(iphone_dma_remove),
+	.remove         = iphone_dma_remove,
 	.suspend        = NULL,
 	.resume         = NULL,
 };

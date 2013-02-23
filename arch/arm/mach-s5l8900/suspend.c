@@ -29,9 +29,7 @@ static int iphone_suspend_enter(suspend_state_t _state)
 {
 	if(_state == PM_SUSPEND_MEM)
 	{
-#	if POWER_PCF50633
 		pcf50633_suspend();
-#	endif
 	}
 
 	return 0;

@@ -25,7 +25,6 @@
 
 #include <linux/init.h>
 #include <linux/device.h>
-#include <linux/sysdev.h>
 #include <linux/io.h>
 #include <linux/i2c.h>
 #include <linux/spi/spi.h>
@@ -297,7 +296,8 @@ module_exit(iphone_exit);
 
 MACHINE_START(IPHONE_3G, "Apple iPhone 3G")
 	/* Maintainer: iDroid Project */
-	.boot_params	= 0x09000000,
+/* FIX ME-> .boot_params is not present anymore in 3.8.6<-
+	.boot_params	= 0x09000000,*/
 	.map_io		= iphone_map_io,
 	.init_irq	= iphone_init_irq,
 	.timer		= &iphone_timer,

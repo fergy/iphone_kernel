@@ -1,14 +1,34 @@
+/*
+ * This file contains driver for the Apple iPhone Timer Counter IP.
+ *
+ *  Copyright (C) 2013 Ramon Rebersak <fergy@idroidproject.org>
+ *
+ * based on arch/arm/mach-s5l8900/timer.c timer driver
+ *
+ * This software is licensed under the terms of the GNU General Public
+ * License version 2, as published by the Free Software Foundation, and
+ * may be copied, distributed, and modified under those terms.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include <linux/kernel.h>
-#include <linux/sched.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
-#include <linux/err.h>
-#include <linux/io.h>
-#include <linux/clk.h>
-#include <linux/clockchips.h>
+#include <linux/types.h>
 #include <linux/clocksource.h>
-
+#include <linux/clockchips.h>
+#include <linux/clk.h>
+#include <linux/io.h>
+#include <linux/of.h>
+#include <linux/of_address.h>
+#include <linux/of_irq.h>
+#include <linux/slab.h>
+#include <linux/clk-provider.h>
 #include <asm/system.h>
 #include <asm/mach-types.h>
 
@@ -196,7 +216,7 @@ static int timer_setup_clk(int timer_id, int type, int divider, u32 unknown1) {
 	return 0;
 }
 
-int timer_init(int timer_id, u32 interval, u32 interval2, u32 prescaler, u32 z, int option24, int option28, int option11, int option5, int interrupts) {
+int timer_init(int timer_id, u32 interval, u32 interval2, u32 z, int option24, int option28, int option11) {
 	u32 config;
 
 	if(timer_id >= NUM_TIMERS || timer_id < 0) {
@@ -206,10 +226,10 @@ int timer_init(int timer_id, u32 interval, u32 interval2, u32 prescaler, u32 z, 
 	/* need to turn it off, since we're messing with the settings */
 	timer_on_off(timer_id, 0);
 
-	if(interrupts)
+//	if(interrupts)
 		config = 0x7000; /* set bits 12, 13, 14 */
-	else
-		config = 0;
+//	else
+//		config = 0;
 
 	/* these two options are only supported on timers 4, 5, 6 */
 	if(timer_id >= TIMER_Separator) {
@@ -219,14 +239,14 @@ int timer_init(int timer_id, u32 interval, u32 interval2, u32 prescaler, u32 z, 
 	/* set the rest of the options */
 	config |= (Timers[timer_id].divider << 8)
 			| (z << 3)
-			| (option5 ? (1 << 5) : 0)
+//			| (option5 ? (1 << 5) : 0)
 			| (Timers[timer_id].option6 ? (1 << 6) : 0)
 			| (option11 ? (1 << 11) : 0);
 
 	__raw_writel(config, HWTimers[timer_id].config);
 	__raw_writel(interval, HWTimers[timer_id].count_buffer);
 	__raw_writel(interval2, HWTimers[timer_id].count_buffer2);
-	__raw_writel(prescaler, HWTimers[timer_id].prescaler);
+//	__raw_writel(interval2, HWTimers[timer_id].interval2);
 
 	// apply the settings
 	__raw_writel(TIMER_STATE_MANUALUPDATE, HWTimers[timer_id].state);
@@ -307,8 +327,6 @@ static irqreturn_t iphone_timer_interrupt(int irq, void* dev_id) {
 	return IRQ_HANDLED;
 }
 
-static void timer_fired(void);
-
 static void iphone_timer_setup(void)
 {
 	/* stop/cleanup any existing timers */
@@ -317,58 +335,62 @@ static void iphone_timer_setup(void)
 	/* do some voodoo */
 	timer_init_rtc();
 
-	Timers[EventTimer].handler2 = timer_fired;
+	Timers[EventTimer].handler2 = timer_tick;
+	// Initialize the timer hardware for something that goes off once every 100 Hz.
+	// The handler for the timer will reset it so it's periodic
+	timer_init(EventTimer, TicksPerSec/HZ, 0, 0, 0, 0, 0);
+
+	timer_on_off(EventTimer, 1);
 }
 
-static void iphone_timer_set_mode(enum clock_event_mode mode,
-			      struct clock_event_device *evt)
+#define TIMER_USEC_SHIFT 16
+
+/* timer_mask_usec_ticks
+ *
+ * given a clock and divisor, make the value to pass into timer_ticks_to_usec
+ * to scale the ticks into usecs
+*/
+
+static inline unsigned long
+timer_mask_usec_ticks(unsigned long scaler, unsigned long pclk)
 {
-	switch (mode) {
-	case CLOCK_EVT_MODE_RESUME:
-	case CLOCK_EVT_MODE_PERIODIC:
-		timer_on_off(EventTimer, 1);
-		break;
-	case CLOCK_EVT_MODE_ONESHOT:
-		break;
-	case CLOCK_EVT_MODE_UNUSED:
-	case CLOCK_EVT_MODE_SHUTDOWN:
-		timer_on_off(EventTimer, 0);
-		break;
+	unsigned long den = pclk / 1000;
+
+	return ((1000 << TIMER_USEC_SHIFT) * scaler + (den >> 1)) / den;
+}
+
+static unsigned long timer_usec_ticks;
+
+/* timer_ticks_to_usec
+ *
+ * convert timer ticks to usec.
+*/
+
+static inline unsigned long timer_ticks_to_usec(unsigned long ticks)
+{
+	unsigned long res;
+
+	res = ticks * timer_usec_ticks;
+	res += 1 << (TIMER_USEC_SHIFT - 4);	/* round up slightly */
+
+	return res >> TIMER_USEC_SHIFT;
+}
+
+static unsigned long iphone_gettimeoffset(void)
+{
+	unsigned long tdone;
+	u32 stat;
+
+	tdone = __raw_readl(HWTimers[EventTimer].cur_count);
+	
+	stat = __raw_readl(TIMER + TIMER_IRQSTAT) >> (8 * (NUM_TIMERS - EventTimer - 1));
+	if((stat & (1 << 0)) != 0) {
+		tdone = __raw_readl(HWTimers[EventTimer].cur_count);
+		tdone += __raw_readl(HWTimers[EventTimer].count_buffer);
 	}
+
+	return timer_ticks_to_usec(tdone);
 }
-
-static int iphone_timer_set_next_event(unsigned long cycles,
-				    struct clock_event_device *evt)
-{
-	timer_init(EventTimer, cycles, 0, 0, 0, 0, 0, 0, 0, 1);
-	return 0;
-}
-
-static cycle_t iphone_timer_read(struct clocksource *cs)
-{
-	u64 ticks;
-	iphone_timer_get_rtc_ticks(&ticks);
-	return ticks;
-}
-
-struct clock_event_device clockevent =
-{
-	.name = "iphone_timer",
-	.features = CLOCK_EVT_FEAT_PERIODIC,
-	.rating = 200,
-	.set_next_event = iphone_timer_set_next_event,
-	.set_mode = iphone_timer_set_mode,
-};
-
-struct clocksource clocksource =
-{
-	.name = "iphone_timer",
-	.rating = 200,
-	.read = iphone_timer_read,
-	.mask = CLOCKSOURCE_MASK(64),
-	.shift = 24,
-	.flags = CLOCK_SOURCE_IS_CONTINUOUS,
-};
 
 static struct irqaction iphone_timer_irq = {
 	.name		= "iPhone Timer Tick",
@@ -376,53 +398,26 @@ static struct irqaction iphone_timer_irq = {
 	.handler	= iphone_timer_interrupt,
 };
 
-static void timer_fired(void)
-{
-	struct clock_event_device *evt = &clockevent;
-	evt->event_handler(evt);
-}
-
 static void __init iphone_timer_init(void)
 {
 	int i;
-	int res;
 
-	printk("iphone-timer: initializing\n");
+	printk("timer: initializing\n");
 
 	for(i = 0; i < NUM_TIMERS; i++) {
 		timer_setup_clk(i, 1, 2, 0);
 	}
 
+	timer_usec_ticks = timer_mask_usec_ticks(1, 12000000);
 	iphone_timer_setup();
+	setup_irq(TIMER_IRQ, &iphone_timer_irq);
 
-	clockevents_calc_mult_shift(&clockevent, FREQUENCY_BASE, 4);
-	clockevent.max_delta_ns = clockevent_delta2ns(0xF0000000, &clockevent);
-	clockevent.min_delta_ns = clockevent_delta2ns(4, &clockevent);
-	clockevent.cpumask = cpumask_of(0);
-
-	clocksource.mult = clocksource_hz2mult(FREQUENCY_BASE, clocksource.shift);
-
-	res = clocksource_register(&clocksource);
-	if(res)
-	{
-		printk("iphone-timer: failed to register clock source\n");
-		return;
-	}
-
-	res = setup_irq(TIMER_IRQ, &iphone_timer_irq);
-	if(res)
-	{
-		printk("iphone-timer: failed to setup irq\n");
-		return;
-	}
-
-	clockevents_register_device(&clockevent);
-
-	printk("iphone-timer: finished initialization: (cycles * %u) >> %u = ns and (cycles << %u) / %u = ns\n", clocksource.mult, clocksource.shift,
-			clockevent.shift, clockevent.mult);
+	printk("timer: finished initialization\n");
 }
 
 struct sys_timer iphone_timer = {
 	.init		= iphone_timer_init,
+//	.offset		= iphone_gettimeoffset,
+	.resume		= iphone_timer_setup
 };
 

@@ -25,3 +25,21 @@
 #define IPHONE_GPIO_IRQS IPHONE_NR_VIC_IRQS
 #define NR_IRQS	(IPHONE_NR_VIC_IRQS + IPHONE_NR_GPIO_IRQS)
 
+#define S5L_PA_UART		(0x3CC00000)
+#define S5L_PA_UART0		(S5L_PA_UART + 0x00)
+#define S5L_PA_UART1		(S5L_PA_UART + 0x400)
+#define S5L_PA_UART2		(S5L_PA_UART + 0x800)
+#define S5L_PA_UART3		(S5L_PA_UART + 0xC00)
+#define S5L_PA_UART4		(S5L_PA_UART + 0x1000)
+#define S5L_SZ_UART		SZ_256
+#define S5L_UART_OFFSET		(0x400)
+
+/* See notes on UART VA mapping in debug-macro.S */
+#define S5L_VA_UARTx(x)	(S5L_VA_UART + (S5L_PA_UART & 0xfffff) + ((x) * S5L_UART_OFFSET))
+
+#define S5L_VA_UART0		S5L_VA_UARTx(0)
+#define S5L_VA_UART1		S5L_VA_UARTx(1)
+#define S5L_VA_UART2		S5L_VA_UARTx(2)
+#define S5L_VA_UART3		S5L_VA_UARTx(3)
+#define S5L_VA_UART4		S5L_VA_UARTx(4)
+

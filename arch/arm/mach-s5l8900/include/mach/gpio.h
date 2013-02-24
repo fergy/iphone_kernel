@@ -3,7 +3,6 @@
 
 #include <linux/interrupt.h>
 #include <mach/hardware.h>
-#include <asm-generic/gpio.h>
 
 // Device
 #define GPIOIC IO_ADDRESS(0x39A00000)	/* probably a part of the system controller */
@@ -36,15 +35,22 @@
 #define GPIO_DETECT2 0xE05
 #define GPIO_DETECT3 0xE06
 
+#define GPIO_BUTTONS_HOME_IPHONE 0x1600
 #define GPIO_BUTTONS_HOME_IPOD 0x1606
-#define GPIO_BUTTONS_HOME_IRQ_IPOD 0x2E
+//#define GPIO_BUTTONS_HOME_IRQ_IPOD 0x2E //WTF IS THIS??
 
-#define GPIO_BUTTONS_HOME 0x1600
+#ifdef CONFIG_IPODTOUCH_1G
+#define GPIO_BUTTONS_HOME GPIO_BUTTONS_HOME_IPOD
+#define GPIO_BUTTONS_HOME_IRQ 0x2E
+#else
+#define GPIO_BUTTONS_HOME GPIO_BUTTONS_HOME_IPHONE
 #define GPIO_BUTTONS_HOME_IRQ 0x28
+#endif
 
 #define GPIO_BUTTONS_HOLD 0x1605
 #define GPIO_BUTTONS_HOLD_IRQ 0x2D
 
+#ifndef CONFIG_IPODTOUCH_1G
 #define GPIO_BUTTONS_VOLUP 0x1601
 #define GPIO_BUTTONS_VOLUP_IRQ 0x29
 
@@ -53,8 +59,7 @@
 
 #define GPIO_BUTTONS_RINGERAB 0x1603
 #define GPIO_BUTTONS_RINGERAB_IRQ 0x2B
-
-#define S3C_GPIO_END 0x1808
+#endif
 
 typedef struct GPIORegisters {
 	volatile uint32_t CON;
@@ -75,6 +80,15 @@ int iphone_gpio_detect_configuration(void);
 int gpio_to_irq(unsigned gpio);
 int irq_to_gpio(unsigned irq);
 
+static inline int gpio_request(unsigned gpio, const char *label)
+{
+	return 0;
+}
+
+static inline void gpio_free(unsigned gpio)
+{
+}
+
 static inline int gpio_get_value(unsigned gpio)
 {
 	return iphone_gpio_pin_state(gpio);
@@ -87,6 +101,38 @@ static inline void gpio_set_value(unsigned gpio, int value)
 
 static inline int gpio_cansleep(unsigned gpio)
 {
+	return 0;
+}
+
+static inline int gpio_get_value_cansleep(unsigned gpio)
+{
+	might_sleep();
+	return gpio_get_value(gpio);
+}
+
+static inline void gpio_set_value_cansleep(unsigned gpio, int value)
+{
+	might_sleep();
+	gpio_set_value(gpio, value);
+}
+
+static inline int gpio_is_valid(int number)
+{
+	if(number > 0 && number < 0x1808)
+		return 1;
+	else
+		return 0;
+}
+
+static inline int gpio_direction_input(unsigned gpio)
+{
+	iphone_gpio_pin_reset(gpio);
+	return 0;
+}
+
+static inline int gpio_direction_output(unsigned gpio, int value)
+{
+	iphone_gpio_pin_output(gpio, value);
 	return 0;
 }
 

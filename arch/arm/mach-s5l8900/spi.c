@@ -615,8 +615,8 @@ static int __init iphone_spi_remove(struct platform_device *_pdev)
 static struct platform_driver iphone_spi_driver = {
 	.probe = iphone_spi_probe,
 	.remove = iphone_spi_remove,
-	.suspend = iphone_spi_suspend, /* optional but recommended */
-	.resume = iphone_spi_resume,   /* optional but recommended */
+	.suspend = iphone_spi_suspend,
+	.resume = iphone_spi_resume,
 	.driver = {
 		.owner = THIS_MODULE,
 		.name = "iphone-spi",

@@ -25,6 +25,11 @@
 #define UART IO_ADDRESS(0x3CC00000)
 
 // Registers
+#define IRQ_UART0		S5L_IRQ_VIC1(5)
+#define IRQ_UART1		S5L_IRQ_VIC1(6)
+#define IRQ_UART2		S5L_IRQ_VIC1(7)
+#define IRQ_UART3		S5L_IRQ_VIC1(8)
+
 #define UART0 0x0
 #define UART1 0x4000
 #define UART2 0x8000

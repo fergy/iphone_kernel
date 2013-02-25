@@ -14,4 +14,20 @@ config HID_SENSOR_ACCEL_3D
 	  Say yes here to build support for the HID SENSOR
 	  accelerometers 3D.
 
+config LIS331DLH_SPI
+	tristate "ST Microelectronics LIS331DLH Accelerometer Driver (SPI)"
+	depends on SPI
+	select IIO_TRIGGERED_BUFFER if IIO_BUFFER
+	help
+	  Say yes here to build SPI support for the ST microelectronics
+	  LIS331DLH 3-axis accelerometer.
+
+config LIS331DLH_I2C
+	tristate "ST Microelectronics LIS331DLH Accelerometer Driver (I2C)"
+	depends on I2C
+	select IIO_TRIGGERED_BUFFER if IIO_BUFFER
+	help
+	  Say yes here to build I2C support for the ST microelectronics
+	  LIS331DLH 3-axis accelerometer.
+
 endmenu
